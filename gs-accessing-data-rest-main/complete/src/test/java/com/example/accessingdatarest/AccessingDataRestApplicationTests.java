@@ -119,4 +119,20 @@ public class AccessingDataRestApplicationTests {
 
     mockMvc.perform(get(location)).andExpect(status().isNotFound());
   }
+
+  @Test
+  public void shouldCreateAndQueryEntityThroughProxyService() throws Exception {
+
+    mockMvc.perform(post("/proxy/people").contentType("application/json").content(
+        "{\"firstName\": \"Samwise\", \"lastName\":\"Gamgee\"}")).andExpect(
+            status().isCreated()).andExpect(
+                jsonPath("$.id").exists()).andExpect(
+                    jsonPath("$.firstName").value("Samwise")).andExpect(
+                        jsonPath("$.lastName").value("Gamgee"));
+
+    mockMvc.perform(get("/proxy/people?lastName={lastName}", "Gamgee")).andExpect(
+        status().isOk()).andExpect(
+            jsonPath("$[0].firstName").value("Samwise")).andExpect(
+                jsonPath("$[0].lastName").value("Gamgee"));
+  }
 }
