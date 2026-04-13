@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Panel de Personas</title>
+  <style>
+    :root {
+      --bg: #f4efe6;
+      --surface: rgba(255, 251, 245, 0.84);
+      --surface-strong: #fffdf9;
+      --surface-dark: #1f2937;
+      --text: #1d2430;
+      --muted: #5f6b7a;
+      --line: rgba(91, 101, 118, 0.18);
+      --primary: #0f766e;
+      --primary-strong: #115e59;
+      --accent: #c2410c;
+      --danger: #b42318;
+      --danger-soft: #fff1ef;
+      --shadow: 0 24px 60px rgba(53, 45, 32, 0.12);
+      --radius-xl: 28px;
+      --radius-lg: 18px;
+      --radius-md: 14px;
+      --font-display: "Georgia", "Times New Roman", serif;
+      --font-body: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: var(--font-body);
+      color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(15, 118, 110, 0.16), transparent 32%),
+        radial-gradient(circle at right 20%, rgba(194, 65, 12, 0.12), transparent 22%),
+        linear-gradient(180deg, #f8f4ed 0%, #efe4d2 100%);
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background-image:
+        linear-gradient(rgba(255, 255, 255, 0.08) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(255, 255, 255, 0.08) 1px, transparent 1px);
+      background-size: 32px 32px;
+      mask-image: linear-gradient(180deg, rgba(0, 0, 0, 0.7), transparent);
+    }
+
+    .shell {
+      width: min(1180px, calc(100% - 32px));
+      margin: 32px auto;
+      position: relative;
+      z-index: 1;
+    }
+
+    .hero {
+      background: linear-gradient(135deg, rgba(17, 94, 89, 0.96), rgba(15, 23, 42, 0.94));
+      color: #f8fafc;
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      position: relative;
+      padding: 28px;
+      animation: lift-in 0.65s ease;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: auto -5% -40% auto;
+      width: 280px;
+      height: 280px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.18), transparent 70%);
+    }
+
+    .hero-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 1fr;
+      gap: 18px;
+      align-items: end;
+      position: relative;
+      z-index: 1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 10px;
+      padding: 8px 14px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.12);
+      font-size: 0.85rem;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+    }
+
+    h1 {
+      margin: 18px 0 10px;
+      font-family: var(--font-display);
+      font-size: clamp(2.4rem, 5vw, 4.5rem);
+      line-height: 0.96;
+      max-width: 9ch;
+    }
+
+    .hero p {
+      margin: 0;
+      max-width: 62ch;
+      color: rgba(248, 250, 252, 0.84);
+      font-size: 1rem;
+      line-height: 1.7;
+    }
+
+    .hero-stats {
+      display: grid;
+      gap: 12px;
+    }
+
+    .stat-card {
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 22px;
+      padding: 18px 20px;
+      backdrop-filter: blur(16px);
+    }
+
+    .stat-card span {
+      display: block;
+      font-size: 0.85rem;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255, 255, 255, 0.72);
+      margin-bottom: 8px;
+    }
+
+    .stat-card strong {
+      display: block;
+      font-size: 2.2rem;
+      font-weight: 700;
+    }
+
+    .dashboard {
+      display: grid;
+      grid-template-columns: 360px minmax(0, 1fr);
+      gap: 22px;
+      margin-top: 22px;
+      align-items: start;
+    }
+
+    .panel {
+      background: var(--surface);
+      border: 1px solid rgba(255, 255, 255, 0.8);
+      border-radius: var(--radius-xl);
+      box-shadow: var(--shadow);
+      padding: 24px;
+      backdrop-filter: blur(18px);
+      animation: lift-in 0.75s ease;
+    }
+
+    .panel h2,
+    .panel h3 {
+      margin: 0;
+      color: var(--surface-dark);
+    }
+
+    .section-copy {
+      margin: 8px 0 0;
+      color: var(--muted);
+      line-height: 1.6;
+      font-size: 0.96rem;
+    }
+
+    .form-grid {
+      display: grid;
+      gap: 16px;
+      margin-top: 22px;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 7px;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--surface-dark);
+    }
+
+    input {
+      width: 100%;
+      border: 1px solid var(--line);
+      border-radius: var(--radius-md);
+      padding: 14px 15px;
+      font: inherit;
+      color: var(--text);
+      background: rgba(255, 255, 255, 0.9);
+      transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+    }
+
+    input:focus {
+      outline: none;
+      border-color: rgba(15, 118, 110, 0.6);
+      box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.12);
+      transform: translateY(-1px);
+    }
+
+    .button-row,
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .button-row {
+      margin-top: 8px;
+    }
+
+    button {
+      border: 0;
+      border-radius: 999px;
+      padding: 13px 18px;
+      font: inherit;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease, background-color 0.2s ease;
+    }
+
+    button:hover {
+      transform: translateY(-1px);
+    }
+
+    button:disabled {
+      opacity: 0.55;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .primary-btn {
+      color: white;
+      background: linear-gradient(135deg, var(--primary), var(--primary-strong));
+      box-shadow: 0 14px 26px rgba(15, 118, 110, 0.22);
+    }
+
+    .secondary-btn {
+      color: var(--surface-dark);
+      background: rgba(255, 255, 255, 0.88);
+      border: 1px solid var(--line);
+    }
+
+    .danger-btn {
+      color: var(--danger);
+      background: var(--danger-soft);
+      border: 1px solid rgba(180, 35, 24, 0.12);
+    }
+
+    .content-head {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      margin-bottom: 18px;
+    }
+
+    .toolbar {
+      margin: 18px 0 18px;
+      align-items: center;
+    }
+
+    .search-wrap {
+      flex: 1 1 280px;
+      position: relative;
+    }
+
+    .search-wrap input {
+      padding-right: 44px;
+    }
+
+    .search-badge {
+      position: absolute;
+      right: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+
+    .status {
+      min-height: 26px;
+      margin-top: 14px;
+      font-size: 0.93rem;
+      font-weight: 600;
+    }
+
+    .status[data-tone="ok"] {
+      color: var(--primary-strong);
+    }
+
+    .status[data-tone="error"] {
+      color: var(--danger);
+    }
+
+    .status[data-tone="neutral"] {
+      color: var(--muted);
+    }
+
+    .table-shell {
+      overflow: hidden;
+      border-radius: 22px;
+      border: 1px solid rgba(91, 101, 118, 0.12);
+      background: rgba(255, 255, 255, 0.82);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      text-align: left;
+      font-size: 0.78rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      background: rgba(15, 23, 42, 0.04);
+      padding: 16px 18px;
+    }
+
+    tbody td {
+      padding: 18px;
+      border-top: 1px solid rgba(91, 101, 118, 0.1);
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      transition: background-color 0.18s ease, transform 0.18s ease;
+    }
+
+    tbody tr:hover {
+      background: rgba(15, 118, 110, 0.05);
+    }
+
+    .name-cell strong,
+    .last-cell strong {
+      display: block;
+      font-size: 1.02rem;
+      color: var(--surface-dark);
+    }
+
+    .name-cell span,
+    .last-cell span {
+      display: block;
+      margin-top: 4px;
+      color: var(--muted);
+      font-size: 0.86rem;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .chip-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 12px 0 0;
+    }
+
+    .chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      border-radius: 999px;
+      padding: 10px 14px;
+      background: rgba(15, 23, 42, 0.05);
+      color: var(--surface-dark);
+      font-size: 0.9rem;
+    }
+
+    .empty-state {
+      padding: 52px 22px;
+      text-align: center;
+      color: var(--muted);
+    }
+
+    .empty-state strong {
+      display: block;
+      margin-bottom: 10px;
+      color: var(--surface-dark);
+      font-size: 1.05rem;
+    }
+
+    .footer-note {
+      margin-top: 16px;
+      color: var(--muted);
+      font-size: 0.87rem;
+    }
+
+    .pulse {
+      display: inline-flex;
+      width: 11px;
+      height: 11px;
+      border-radius: 50%;
+      background: #34d399;
+      box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45);
+      animation: pulse 1.8s infinite;
+    }
+
+    .hidden {
+      display: none !important;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0.45); }
+      70% { box-shadow: 0 0 0 12px rgba(52, 211, 153, 0); }
+      100% { box-shadow: 0 0 0 0 rgba(52, 211, 153, 0); }
+    }
+
+    @keyframes lift-in {
+      from {
+        opacity: 0;
+        transform: translateY(18px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 980px) {
+      .hero-grid,
+      .dashboard {
+        grid-template-columns: 1fr;
+      }
+
+      .content-head {
+        align-items: start;
+        flex-direction: column;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .shell {
+        width: min(100% - 20px, 1180px);
+        margin: 14px auto 24px;
+      }
+
+      .hero,
+      .panel {
+        padding: 20px;
+        border-radius: 24px;
+      }
+
+      h1 {
+        font-size: 2.4rem;
+      }
+
+      thead {
+        display: none;
+      }
+
+      table,
+      tbody,
+      tr,
+      td {
+        display: block;
+        width: 100%;
+      }
+
+      tbody td {
+        border-top: 0;
+        padding: 10px 16px;
+      }
+
+      tbody tr {
+        padding: 14px 0;
+        border-top: 1px solid rgba(91, 101, 118, 0.1);
+      }
+
+      .actions {
+        justify-content: flex-start;
+      }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="hero">
+      <div class="hero-grid">
+        <div>
+          <div class="eyebrow">
+            <span class="pulse"></span>
+            Spring Data REST en vivo
+          </div>
+          <h1>Directorio de personas</h1>
+          <p>
+            Un panel limpio para crear, consultar, editar y eliminar registros desde tu API
+            REST. Todo corre desde el mismo proyecto y usa la ruta real del backend.
+          </p>
+          <div class="chip-row">
+            <div class="chip">API: <strong id="apiBaseLabel">/people</strong></div>
+            <div class="chip">Puerto: <strong>9090</strong></div>
+          </div>
+        </div>
+        <div class="hero-stats">
+          <div class="stat-card">
+            <span>Total actual</span>
+            <strong id="totalCount">0</strong>
+          </div>
+          <div class="stat-card">
+            <span>Estado</span>
+            <strong id="connectionStatus">Listo</strong>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="dashboard">
+      <aside class="panel">
+        <h2 id="formTitle">Registrar nueva persona</h2>
+        <p class="section-copy">
+          Completa los datos y guarda. Si eliges editar un registro, este panel se actualiza
+          automáticamente para trabajar sobre esa persona.
+        </p>
+
+        <form id="personForm" class="form-grid">
+          <input type="hidden" id="personUrl">
+
+          <div>
+            <label for="firstName">Nombre</label>
+            <input id="firstName" name="firstName" type="text" maxlength="80" placeholder="Ej. Mariana" required>
+          </div>
+
+          <div>
+            <label for="lastName">Apellido</label>
+            <input id="lastName" name="lastName" type="text" maxlength="80" placeholder="Ej. Salazar" required>
+          </div>
+
+          <div class="button-row">
+            <button type="submit" class="primary-btn" id="submitButton">Guardar persona</button>
+            <button type="button" class="secondary-btn hidden" id="cancelButton">Cancelar edición</button>
+          </div>
+        </form>
+
+        <div class="status" id="formStatus" data-tone="neutral"></div>
+        <p class="footer-note">
+          Consejo: también puedes filtrar personas por apellido desde el panel principal.
+        </p>
+      </aside>
+
+      <section class="panel">
+        <div class="content-head">
+          <div>
+            <h3>Registros disponibles</h3>
+            <p class="section-copy">
+              Vista conectada con Spring Data REST usando HAL. Incluye búsqueda por apellido y recarga manual.
+            </p>
+          </div>
+          <button type="button" class="secondary-btn" id="reloadButton">Recargar</button>
+        </div>
+
+        <div class="toolbar">
+          <div class="search-wrap">
+            <label for="searchLastName">Buscar por apellido</label>
+            <input id="searchLastName" type="text" placeholder="Escribe un apellido para filtrar">
+            <span class="search-badge">/search</span>
+          </div>
+          <button type="button" class="secondary-btn" id="searchButton">Buscar</button>
+          <button type="button" class="secondary-btn hidden" id="clearSearchButton">Limpiar filtro</button>
+        </div>
+
+        <div class="status" id="listStatus" data-tone="neutral"></div>
+
+        <div class="table-shell">
+          <table aria-label="Listado de personas">
+            <thead>
+              <tr>
+                <th>Nombre</th>
+                <th>Apellido</th>
+                <th style="text-align: right;">Acciones</th>
+              </tr>
+            </thead>
+            <tbody id="personTableBody"></tbody>
+          </table>
+        </div>
+      </section>
+    </section>
+  </main>
+
+  <script>
+    const API_BASE = `${window.location.origin}/people`;
+    const state = {
+      people: [],
+      filter: "",
+      editingUrl: ""
+    };
+
+    const elements = {
+      apiBaseLabel: document.getElementById("apiBaseLabel"),
+      totalCount: document.getElementById("totalCount"),
+      connectionStatus: document.getElementById("connectionStatus"),
+      form: document.getElementById("personForm"),
+      formTitle: document.getElementById("formTitle"),
+      submitButton: document.getElementById("submitButton"),
+      cancelButton: document.getElementById("cancelButton"),
+      personUrl: document.getElementById("personUrl"),
+      firstName: document.getElementById("firstName"),
+      lastName: document.getElementById("lastName"),
+      formStatus: document.getElementById("formStatus"),
+      listStatus: document.getElementById("listStatus"),
+      tableBody: document.getElementById("personTableBody"),
+      searchLastName: document.getElementById("searchLastName"),
+      searchButton: document.getElementById("searchButton"),
+      clearSearchButton: document.getElementById("clearSearchButton"),
+      reloadButton: document.getElementById("reloadButton")
+    };
+
+    elements.apiBaseLabel.textContent = API_BASE.replace(window.location.origin, "");
+
+    function setStatus(target, message, tone = "neutral") {
+      target.textContent = message;
+      target.dataset.tone = tone;
+    }
+
+    function updateSummary() {
+      elements.totalCount.textContent = String(state.people.length);
+      elements.connectionStatus.textContent = state.filter ? "Filtro activo" : "Sincronizado";
+    }
+
+    function escapeHtml(value) {
+      return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#39;");
+    }
+
+    function renderTable() {
+      updateSummary();
+
+      if (!state.people.length) {
+        const emptyMessage = state.filter
+          ? "No encontramos coincidencias para ese apellido."
+          : "Todavía no hay personas registradas en la base de datos.";
+
+        elements.tableBody.innerHTML = `
+          <tr>
+            <td colspan="3">
+              <div class="empty-state">
+                <strong>Sin resultados</strong>
+                <span>${escapeHtml(emptyMessage)}</span>
+              </div>
+            </td>
+          </tr>
+        `;
+        return;
+      }
+
+      elements.tableBody.innerHTML = state.people.map((person) => {
+        const selfUrl = person?._links?.self?.href ?? "";
+        const firstName = escapeHtml(person.firstName || "Sin nombre");
+        const lastName = escapeHtml(person.lastName || "Sin apellido");
+        const encodedUrl = encodeURIComponent(selfUrl);
+
+        return `
+          <tr>
+            <td class="name-cell">
+              <strong>${firstName}</strong>
+              <span>Nombre registrado</span>
+            </td>
+            <td class="last-cell">
+              <strong>${lastName}</strong>
+              <span>Apellido registrado</span>
+            </td>
+            <td>
+              <div class="actions">
+                <button type="button" class="secondary-btn" data-action="edit" data-url="${encodedUrl}">
+                  Editar
+                </button>
+                <button type="button" class="danger-btn" data-action="delete" data-url="${encodedUrl}">
+                  Eliminar
+                </button>
+              </div>
+            </td>
+          </tr>
+        `;
+      }).join("");
+    }
+
+    async function requestJson(url, options = {}) {
+      const response = await fetch(url, {
+        headers: {
+          "Accept": "application/hal+json, application/json"
+        },
+        ...options
+      });
+
+      if (!response.ok) {
+        throw new Error(`La API respondió con estado ${response.status}.`);
+      }
+
+      const text = await response.text();
+      return text ? JSON.parse(text) : {};
+    }
+
+    function getEmbeddedPeople(payload) {
+      return payload?._embedded?.people ?? [];
+    }
+
+    async function loadPeople() {
+      const search = state.filter.trim();
+      const endpoint = search
+        ? `${API_BASE}/search/findByLastName?name=${encodeURIComponent(search)}`
+        : API_BASE;
+
+      setStatus(elements.listStatus, "Consultando registros...", "neutral");
+      elements.connectionStatus.textContent = "Cargando";
+
+      try {
+        const payload = await requestJson(endpoint);
+        state.people = getEmbeddedPeople(payload);
+        renderTable();
+
+        const message = search
+          ? `Filtro aplicado para apellido: ${search}`
+          : "Listado actualizado correctamente.";
+
+        setStatus(elements.listStatus, message, "ok");
+      } catch (error) {
+        state.people = [];
+        renderTable();
+        setStatus(elements.listStatus, error.message, "error");
+        elements.connectionStatus.textContent = "Sin conexión";
+      }
+    }
+
+    function resetForm() {
+      state.editingUrl = "";
+      elements.form.reset();
+      elements.personUrl.value = "";
+      elements.formTitle.textContent = "Registrar nueva persona";
+      elements.submitButton.textContent = "Guardar persona";
+      elements.cancelButton.classList.add("hidden");
+      setStatus(elements.formStatus, "Formulario listo para un nuevo registro.", "neutral");
+    }
+
+    function startEdit(url) {
+      const decodedUrl = decodeURIComponent(url);
+      const person = state.people.find((item) => item?._links?.self?.href === decodedUrl);
+
+      if (!person) {
+        setStatus(elements.formStatus, "No pudimos cargar esa persona para editar.", "error");
+        return;
+      }
+
+      state.editingUrl = decodedUrl;
+      elements.personUrl.value = decodedUrl;
+      elements.firstName.value = person.firstName || "";
+      elements.lastName.value = person.lastName || "";
+      elements.formTitle.textContent = "Editar persona";
+      elements.submitButton.textContent = "Guardar cambios";
+      elements.cancelButton.classList.remove("hidden");
+      setStatus(elements.formStatus, "Modo edición activado.", "ok");
+      elements.firstName.focus();
+    }
+
+    async function removePerson(url) {
+      const decodedUrl = decodeURIComponent(url);
+      const confirmed = window.confirm("¿Deseas eliminar este registro de forma permanente?");
+
+      if (!confirmed) {
+        return;
+      }
+
+      setStatus(elements.listStatus, "Eliminando registro...", "neutral");
+
+      try {
+        const response = await fetch(decodedUrl, { method: "DELETE" });
+
+        if (!response.ok) {
+          throw new Error(`No se pudo eliminar. Estado ${response.status}.`);
+        }
+
+        if (state.editingUrl === decodedUrl) {
+          resetForm();
+        }
+
+        setStatus(elements.listStatus, "Registro eliminado correctamente.", "ok");
+        await loadPeople();
+      } catch (error) {
+        setStatus(elements.listStatus, error.message, "error");
+      }
+    }
+
+    elements.form.addEventListener("submit", async (event) => {
+      event.preventDefault();
+
+      const payload = {
+        firstName: elements.firstName.value.trim(),
+        lastName: elements.lastName.value.trim()
+      };
+
+      if (!payload.firstName || !payload.lastName) {
+        setStatus(elements.formStatus, "Completa nombre y apellido antes de guardar.", "error");
+        return;
+      }
+
+      const targetUrl = elements.personUrl.value || API_BASE;
+      const method = elements.personUrl.value ? "PUT" : "POST";
+      setStatus(elements.formStatus, "Guardando información...", "neutral");
+
+      try {
+        const response = await fetch(targetUrl, {
+          method,
+          headers: {
+            "Content-Type": "application/json",
+            "Accept": "application/hal+json, application/json"
+          },
+          body: JSON.stringify(payload)
+        });
+
+        if (!response.ok) {
+          throw new Error(`No se pudo guardar. Estado ${response.status}.`);
+        }
+
+        resetForm();
+        setStatus(elements.formStatus, "Persona guardada correctamente.", "ok");
+        await loadPeople();
+      } catch (error) {
+        setStatus(elements.formStatus, error.message, "error");
+      }
+    });
+
+    elements.cancelButton.addEventListener("click", resetForm);
+
+    elements.searchButton.addEventListener("click", async () => {
+      state.filter = elements.searchLastName.value.trim();
+      elements.clearSearchButton.classList.toggle("hidden", !state.filter);
+      await loadPeople();
+    });
+
+    elements.searchLastName.addEventListener("keydown", async (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        state.filter = elements.searchLastName.value.trim();
+        elements.clearSearchButton.classList.toggle("hidden", !state.filter);
+        await loadPeople();
+      }
+    });
+
+    elements.clearSearchButton.addEventListener("click", async () => {
+      state.filter = "";
+      elements.searchLastName.value = "";
+      elements.clearSearchButton.classList.add("hidden");
+      await loadPeople();
+    });
+
+    elements.reloadButton.addEventListener("click", loadPeople);
+
+    elements.tableBody.addEventListener("click", async (event) => {
+      const button = event.target.closest("button[data-action]");
+
+      if (!button) {
+        return;
+      }
+
+      const { action, url } = button.dataset;
+
+      if (action === "edit") {
+        startEdit(url);
+        return;
+      }
+
+      if (action === "delete") {
+        await removePerson(url);
+      }
+    });
+
+    resetForm();
+    loadPeople();
+  </script>
+</body>
+</html>
